@@ -1,6 +1,7 @@
 import * as React from "react";
 import { hot } from "react-hot-loader";
 import "./../assets/scss/App.scss";
+import { AddTodo } from "./AddTodo";
 import { ITextChangeEvent } from "./ITextChangeEvent";
 import { Todo } from "./Todo";
 
@@ -22,9 +23,10 @@ class App extends React.Component<{}, { todos: Array<string> }> {
                         onTextChanged={(event: ITextChangeEvent) =>
                             this.handleTodoTextChanged(i, event)
                         }
+                        // onCheckboxClicked={() => this.handleCheckboxClicked(i)}
                     />
                 ))}
-                <Todo
+                <AddTodo
                     value=""
                     onTextChanged={(event: ITextChangeEvent) =>
                         this.handleTodoTextChanged(
@@ -35,6 +37,10 @@ class App extends React.Component<{}, { todos: Array<string> }> {
                 />
             </div>
         );
+    }
+    public handleCheckboxClicked(i: number) {
+        const todos = [...this.state.todos].splice(i + 1, 1);
+        this.setState({ todos });
     }
 
     public handleTodoTextChanged(i: number, event: ITextChangeEvent) {

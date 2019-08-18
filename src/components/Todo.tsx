@@ -8,14 +8,10 @@ type Props = {
     onTextChanged: (event: ITextChangeEvent) => void;
 };
 
-export class Todo extends React.Component<
-    Props,
-    { value: string; done: boolean }
-> {
+export class Todo extends React.Component<Props, { done: boolean }> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            value: props.value,
             done: false,
         };
     }

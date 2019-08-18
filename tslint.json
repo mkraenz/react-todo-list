@@ -1,11 +1,20 @@
 {
-    "defaultSeverity": "error",
-    "extends": [
-        "tslint:recommended"
-    ],
-    "jsRules": {},
-    "rules": {
-        "no-var-requires": false
-    },
-    "rulesDirectory": []
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended", "tslint-config-prettier"],
+  "rulesDirectory": [
+    "tslint-plugin-prettier",
+    "node_modules/tslint-lines-between-class-members",
+    "tslint-no-focused-test"
+  ],
+  "linterOptions": {
+    "exclude": ["node_modules/**", "coverage/**", "build/**", ".nyc_output/**"]
+  },
+  "rules": {
+    "no-var-requires": false,
+    "lines-between-class-members": [true, 1],
+    "no-focused-test": true,
+    "prefer-template": true,
+    "prettier": true,
+    "object-literal-sort-keys": false
+  }
 }

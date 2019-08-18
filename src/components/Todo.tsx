@@ -44,6 +44,7 @@ export class Todo extends React.Component<
                         onChange={(event: FormControlEvent) =>
                             this.props.onTextChanged(event)
                         }
+                        autoFocus
                     />
                 </InputGroup>
             </div>

@@ -1,26 +1,23 @@
 import * as React from "react";
-import { FormControl, InputGroup } from "react-bootstrap";
+import { FormControl, FormControlProps, InputGroup } from "react-bootstrap";
+import { BsPrefixProps, ReplaceProps } from "react-bootstrap/helpers";
+import { ITextChangeEvent } from "./ITextChangeEvent";
 
-interface ITextChangeEvent {
-    target: { value: string };
-}
+type Props = {
+    value: string;
+    onTextChanged: (event: ITextChangeEvent) => void;
+};
 
 export class Todo extends React.Component<
-    {},
+    Props,
     { value: string; done: boolean }
 > {
-    constructor(props: {
-        onTextChanged: (event: ITextChangeEvent, id: string) => void;
-    }) {
+    constructor(props: Props) {
         super(props);
         this.state = {
-            value: "",
+            value: props.value,
             done: false,
         };
-    }
-
-    public handleChange(event: { target: { value: string } }) {
-        this.setState({ value: event.target.value });
     }
 
     public handleCheckboxClick() {
@@ -28,6 +25,10 @@ export class Todo extends React.Component<
     }
 
     public render() {
+        type FormControlEvent = React.FormEvent<
+            ReplaceProps<"input", BsPrefixProps<"input"> & FormControlProps>
+        >;
+
         return (
             <div className="todo">
                 <InputGroup className="mb-3">
@@ -39,8 +40,10 @@ export class Todo extends React.Component<
                     </InputGroup.Prepend>
                     <FormControl
                         placeholder="add todo"
-                        value={this.state.value}
-                        onChange={(event: any) => this.handleChange(event)}
+                        value={this.props.value}
+                        onChange={(event: FormControlEvent) =>
+                            this.props.onTextChanged(event)
+                        }
                     />
                 </InputGroup>
             </div>

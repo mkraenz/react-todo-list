@@ -1,15 +1,14 @@
 import * as React from "react";
 import { hot } from "react-hot-loader";
 import "./../assets/scss/App.scss";
+import { ITextChangeEvent } from "./ITextChangeEvent";
 import { Todo } from "./Todo";
-
-const reactLogo = require("./../assets/img/react_logo.svg");
 
 class App extends React.Component<{}, { todos: Array<string> }> {
     constructor(props: {}) {
         super(props);
         this.state = {
-            todos: [],
+            todos: ["my first todo", "my second todo"],
         };
     }
 
@@ -17,21 +16,30 @@ class App extends React.Component<{}, { todos: Array<string> }> {
         return (
             <div className="app">
                 <h1>Mirco's Todo list</h1>
-                <p>here comes an element</p>
-                <img src={reactLogo} height="480" />
+                {this.state.todos.map((todo, i) => (
+                    <Todo
+                        value={todo}
+                        onTextChanged={(event: ITextChangeEvent) =>
+                            this.handleTodoTextChanged(i, event)
+                        }
+                    />
+                ))}
                 <Todo
-                // onTextChanged={(event: any, i: number) =>
-                //     this.onTodoTextChanged(i, event)
-                // }
+                    value=""
+                    onTextChanged={(event: ITextChangeEvent) =>
+                        this.handleTodoTextChanged(
+                            this.state.todos.length,
+                            event
+                        )
+                    }
                 />
-                <Todo />
             </div>
         );
     }
 
-    public onTodoTextChanged(i: number, event: { target: { value: string } }) {
+    public handleTodoTextChanged(i: number, event: ITextChangeEvent) {
         const todos = this.state.todos.slice();
-        todos[i] = event.target.value;
+        todos[i] = event.currentTarget.value;
         this.setState({ todos });
     }
 }

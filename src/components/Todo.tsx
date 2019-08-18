@@ -1,19 +1,25 @@
 import * as React from "react";
-import { Form } from "react-bootstrap";
+import { FormControl, InputGroup } from "react-bootstrap";
+
+interface ITextChangeEvent {
+    target: { value: string };
+}
 
 export class Todo extends React.Component<
     {},
     { value: string; done: boolean }
 > {
-    constructor(props: {}) {
+    constructor(props: {
+        onTextChanged: (event: ITextChangeEvent, id: string) => void;
+    }) {
         super(props);
         this.state = {
-            value: "asdf",
+            value: "",
             done: false,
         };
     }
 
-    public handleChange(event: { target: { value } }) {
+    public handleChange(event: { target: { value: string } }) {
         this.setState({ value: event.target.value });
     }
 
@@ -22,22 +28,21 @@ export class Todo extends React.Component<
     }
 
     public render() {
-        // TODO
         return (
             <div className="todo">
-                <Form>
-                    <input
-                        type="checkbox"
-                        checked={this.state.done}
-                        onClick={() => this.handleCheckboxClick()}
-                    />
-                    <input
-                        type="text"
+                <InputGroup className="mb-3">
+                    <InputGroup.Prepend>
+                        <InputGroup.Checkbox
+                            checked={this.state.done}
+                            onClick={() => this.handleCheckboxClick()}
+                        />
+                    </InputGroup.Prepend>
+                    <FormControl
+                        placeholder="add todo"
                         value={this.state.value}
-                        onChange={event => this.handleChange(event)}
+                        onChange={(event: any) => this.handleChange(event)}
                     />
-                    <p>{this.state.value}</p>
-                </Form>
+                </InputGroup>
             </div>
         );
     }

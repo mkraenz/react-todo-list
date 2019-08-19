@@ -4,7 +4,6 @@ import { BsPrefixProps, ReplaceProps } from "react-bootstrap/helpers";
 import { ITextChangeEvent } from "./ITextChangeEvent";
 
 type Props = {
-    value: string;
     onTextChanged: (event: ITextChangeEvent) => void;
 };
 
@@ -20,8 +19,8 @@ export const AddTodo: React.FunctionComponent<Props> = (props: Props) => {
                     <InputGroup.Text>+</InputGroup.Text>
                 </InputGroup.Prepend>
                 <FormControl
-                    placeholder="add todo"
-                    value={props.value}
+                    placeholder="add list item"
+                    value=""
                     onChange={(event: FormControlEvent) =>
                         props.onTextChanged(event)
                     }

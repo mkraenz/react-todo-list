@@ -27,7 +27,6 @@ class App extends React.Component<{}, { todos: Array<string> }> {
                     />
                 ))}
                 <AddTodo
-                    value=""
                     onTextChanged={(event: ITextChangeEvent) =>
                         this.handleTodoTextChanged(
                             this.state.todos.length,

@@ -23,7 +23,7 @@ class App extends React.Component<{}, { todos: Array<string> }> {
                         onTextChanged={(event: ITextChangeEvent) =>
                             this.handleTodoTextChanged(i, event)
                         }
-                        // onCheckboxClicked={() => this.handleCheckboxClicked(i)}
+                        onCheckboxClicked={() => this.handleCheckboxClicked(i)}
                     />
                 ))}
                 <AddTodo
@@ -39,7 +39,7 @@ class App extends React.Component<{}, { todos: Array<string> }> {
         );
     }
     public handleCheckboxClicked(i: number) {
-        const todos = [...this.state.todos].splice(i + 1, 1);
+        const todos = this.state.todos.filter(x => x !== this.state.todos[i]);
         this.setState({ todos });
     }
 

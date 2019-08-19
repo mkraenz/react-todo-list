@@ -6,6 +6,7 @@ import { ITextChangeEvent } from "./ITextChangeEvent";
 type Props = {
     value: string;
     onTextChanged: (event: ITextChangeEvent) => void;
+    onCheckboxClicked: () => void;
 };
 
 export class Todo extends React.Component<Props, { done: boolean }> {
@@ -31,7 +32,7 @@ export class Todo extends React.Component<Props, { done: boolean }> {
                     <InputGroup.Prepend>
                         <InputGroup.Checkbox
                             checked={this.state.done}
-                            onClick={() => this.handleCheckboxClick()}
+                            onClick={this.props.onCheckboxClicked}
                         />
                     </InputGroup.Prepend>
                     <FormControl

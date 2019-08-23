@@ -1,0 +1,12 @@
+{
+    "name": "react-todo-list-server",
+    "version": "0.0.1",
+    "description": "react-todo-list-server - hosting server for the Rect todo list in Typescript",
+    "license": "MIT",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "express": "^4.17.1"
+    }
+}

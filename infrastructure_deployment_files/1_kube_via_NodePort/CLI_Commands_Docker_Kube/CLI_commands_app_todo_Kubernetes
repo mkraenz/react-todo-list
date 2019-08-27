@@ -1,0 +1,20 @@
+vim app_todo_deploy.yaml
+vim app_todo_serviceNodePort.yaml
+
+---------------------
+
+
+kubectl apply -f app_todo_deploy.yaml 
+kubectl apply -f app_todo_serviceNodePort.yaml
+
+
+---------------------
+
+See app on localhost:
+localhost:31004
+
+---------------------
+
+check app deploy and service:
+kubectl get service todo-app-nodeport-service
+kubectl get deploy todo-app 

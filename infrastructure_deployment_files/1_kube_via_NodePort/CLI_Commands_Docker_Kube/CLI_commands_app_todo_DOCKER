@@ -1,0 +1,31 @@
+BUILD
+docker build -t todo-app:prod .
+docker run -d -p 8080:8080 todo-app:prod
+
+
+
+
+---------------
+
+
+TAG + PUSH
+
+Option A ( with id from latest build)
+docker tag 05afc9f3bd26 luccien/todo-app:001-node08-05afc9f3bd26
+
+Option B (fast and easy )
+docker tag todo-app:prod luccien/todo-app:prod
+
+Push  Option A and Option B:
+docker push luccien/todo-app:001-node08-05afc9f3bd26
+docker push luccien/todo-app:prod
+
+---------------
+CLEAN UP
+Images (dangling):
+docker image prune
+
+Images (all)
+-all
+
+Containers:

@@ -167,18 +167,9 @@ aws s3api put-bucket-encryption --bucket kubernetes-aws-198981 --server-side-enc
 ------------------------------------------
 
 
--------------------------------------
-11) create an   ssh key  in the us-west-2  region  (example: in the web console)
-  example ssh key name:    kubernetes
-
-
---------------
-kops create secret --name cluster.mahjongfree.de sshpublickey admin -i ~/.ssh/id_rsa.pub
---------------
--------------------------------------
 
 ------------------------------------------
-12)
+11)
 create a hostetd zone for your domain in AWS Route 53
 Namecheap.com Domain example:
 http://techgenix.com/namecheap-aws-ec2-linux/
@@ -200,7 +191,7 @@ subdomain.example.com.        172800  IN  NS  ns-4.awsdns-4.co.uk.
 
 
 -------------------------------------------------------
-13)
+12)
 https://github.com/kubernetes/kops/blob/master/docs/aws.md
 
 We're ready to start creating our first cluster! Let's first set up a few environment variables to make this process easier.
@@ -219,6 +210,35 @@ export NAME=cluster.mahjongfree.de
 export KOPS_STATE_STORE=s3://kubernetes-aws-198981
 !!!!!!!!!!!!!!!!!!
 ----------------->>>>>>>>>>>>>>>  REMOVE
+
+
+
+-------------------------------------
+https://medium.com/@mcyasar/amazon-aws-kubernetes-kops-installation-7a205fe2d118
+13) - create an   ssh key  in the us-west-2  region  (example: in the web console)
+    - dowload the ssh key to your local machine 
+
+   - now create your .pub key from your private ssh .pem key  
+   ---> cd into your dir where file .pem ssh key is
+   ----> chmod 400 mykey.pem
+  ---->  ssh-keygen -y -f mykey.pem
+
+
+   This command will print out your public key, for example: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC…
+Copy the printed text. Create a file and paste this text in it. Then you will register this key with KOPS. For example I created a file with a name, id_rsa.pub. It can be any name. Then you must input command like this:
+
+cd ~/.ssh
+vim id_rsa.pub
+copy in public key : ssh-rsa AAA...
+to save in vim:
+press esc
+press :
+press x
+
+--------------
+kops create secret --name cluster.mahjongfree.de sshpublickey admin -i ~/.ssh/id_rsa.pub
+--------------
+-------------------------------------
 
 
 ------------------------------------------------
@@ -248,16 +268,109 @@ kops create cluster \
     ${NAME}
 ------------------------------>>> end
 
+----------------------------------------------------------------------
+
+
+------------------------------------------------------------------
+15)
+Now we have a cluster configuration, we can look at every aspect that defines our cluster by editing the description.
+
+kops edit cluster ${NAME}
+
+This opens your editor (as defined by $EDITOR) and allows you to edit the configuration. The configuration is loaded from the S3 bucket we created earlier, and automatically updated when we save and exit the editor.
+
+--------------------------------------------------------------------
+
+
+
+----------------------------------
+16)
+Build the Cluster
+
+Now we take the final step of actually building the cluster. This'll take a while. Once it finishes you'll have to wait longer while the booted instances finish downloading Kubernetes components and reach a "ready" state.
+
+kops update cluster ${NAME} --yes
+
+---------------------------------------
+
+
+------------------------------
+17) check if cluster is ready :
+
+kops validate cluster
+
+------------------------------
+-------------
+ * validate cluster: kops validate cluster
+ * list nodes: kubectl get nodes --show-labels
+ * ssh to the master: ssh -i ~/.ssh/id_rsa admin@api.cluster.mahjongfree.de
+ * the admin user is specific to Debian. If not using Debian please use the appropriate user based on your OS.
+ * read about installing addons at: https://github.com/kubernetes/kops/blob/master/docs/addons.md.
+--------------------
+
+
+----------------------------
+18)
+Create the todo app  with a loadbalancer 
+
+https://www.poeticoding.com/create-a-high-availability-kubernetes-cluster-on-aws-with-kops/
+
+
+cd  to repository folder : infrastructure_deployment_files/2_kops-on-aws__kubernetes-cluster-setup/kubernet_aws_loadbalancer_todoapp
+the app_todo_service_aws_elb.yaml  will create a service in kubernetes and also a loadbalancer in aws --> you can see
+the aws loadbalancer in the aws web console --> in ec2  service and there loadbalancer
+
+
+kubectl create -f app_todo_deploy.yaml 
+kubectl create -f app_todo_service_aws_elb.yaml
+---------------------------
+
+
+
+-----------------------------
+19)
+Create a A Record  in AWS Service Route53 to connect the aws loadbalancer with  the url:  mahjongfree.de 
+
+The app is available at:
+http://mahjongfree.de
+-----------------------------
+
+
+--------------------------
+20) https  ( NOT working right know)
+Go in the aws web console to the certificate manager and issue an certificate (open certificate) 
+requesting: mahjongfree.de
+via DNS validate (it will take some 10 minutes)
+
+for subdomains do the same with:
+*.mahjongfree.de 
+
+https://mahjongfree.de  
+-------------------------
+
+
+----------------------------------------
+21) DELETE the cluster
+kops delete cluster --name ${NAME} --yes
+
+Should show something like: Deleted cluster: "cluster.mahjongfree.de"
+Check terminated instances in the aws web console
+Also check if loadbalancer is deleted (loadbalancer without instances attached will cost). It should be also deleted. 
+-----------------------------------
+
+
+--------------------------------
+22)
+for setting up the cluster after restarting pc :
+-------------->>>>>>>>>>>>>>>>>>>  REMOVE
+!!!!!!!!!!!!!!!!
+export NAME=cluster.mahjongfree.de
+export KOPS_STATE_STORE=s3://kubernetes-aws-198981
+!!!!!!!!!!!!!!!!!!
+----------------->>>>>>>>>>>>>>>  REMOVE
+---------------------------------
 
 
 
 
-------------------------------  MORE OPTIONS FOR LATER USE
-    --node-security-groups sg-12345678 \
-    --master-security-groups sg-12345678,i-abcd1234 \
-    --topology private \
-    --networking weave \
-    --cloud-labels "Team=Dev,Owner=John Doe" \
-    --image 293135079892/k8s-1.4-debian-jessie-amd64-hvm-ebs-2016-11-16 \
-----------------------------------------------
 

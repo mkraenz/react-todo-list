@@ -1,0 +1,263 @@
+Both have similar (check out both)  instructions on how to deploy an Kops Kubernetes Cluster: 
+https://aws.amazon.com/de/blogs/compute/kubernetes-clusters-aws-kops/
+https://github.com/kubernetes/kops/blob/master/docs/aws.md
+
+
+This tutorial will create ec2 instances (2 * t2-micro instances) in    us-west-2  is USA West (Oregon) -- which you can see in AWS console --> you need to select Oregon region in web console to see the ec2 instances  (check aws service --> ec2)
+
+
+
+******************************************************
+1-3  required for ADMIN and Users
+******************************************************
+---------------------------------
+1) Install localy:  install the CLI tool kops
+
+https://github.com/kubernetes/kops/blob/master/docs/install.md
+
+on LINUX:
+
+curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+chmod +x ./kops
+sudo mv ./kops /usr/local/bin/
+----------------------------------
+
+-------------------------------------
+2) Install localy:  install the CLI tool kubectl
+
+on Linux:
+
+curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+chmod +x ./kops
+sudo mv ./kops /usr/local/bin/
+
+------------------------------------
+
+--------------------------------
+3) install aws cli
+
+on Linux:
+
+sudo pip install awscli
+
+------------------------------
+
+*********************************************************
+4-  7  For ADMIN only
+*********************************************************
+
+
+----------------------------
+4)  create an admin aws iam user (with its own login url / name / password)
+
+Have a AWS Account 
+
+do not work with aws root user (the first password user login you create with your aws account) -- save your aws root password in a password manager or other save place
+create a admin user with less privileges  in aws iam service:
+https://docs.aws.amazon.com/de_de/mediapackage/latest/ug/setting-up-create-iam-user.html
+
+Optional security:
+- MFA(Multifaktor Authentication) AWS root account     (smartphone or other device)
+- enable AWS cloudtrail - logs api calls (free and easy setup)
+- enable alarms for budgets
+-----------------------------
+
+-----------------------------
+5)  configure aws cli with aws admin user
+https://docs.aws.amazon.com/de_de/cli/latest/userguide/cli-chap-configure.html
+
+aws configure
+
+AWS Access Key ID [None]: N7--EXAMPLE
+AWS Secret Access Key [None]: fiCY--EXAMPLEKEY
+Default region name [None]: us-west-2
+Default output format [None]: json
+
+Hint: us-west-2  is USA West (Oregon) // for later finding services in webconsole
+-------------------------------
+
+
+-------------------------------------
+6) Use the default aws cli user (step 5) which is  aws administrator  user to setup new user for using  (kubernetes with koops):
+https://github.com/kubernetes/kops/blob/master/docs/aws.md
+
+
+Copy past this long command in CLI
+-------> Start
+aws iam create-group --group-name kops \
+&& aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AmazonEC2FullAccess --group-name kops \
+&& aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AmazonRoute53FullAccess --group-name kops \
+&& aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess --group-name kops \
+&& aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/IAMFullAccess --group-name kops \
+&& aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AmazonVPCFullAccess --group-name kops \
+&& aws iam create-user --user-name kops \
+&& aws iam add-user-to-group --user-name kops --group-name kops \
+&& aws iam create-access-key --user-name kops
+--------> end
+
+Note down your secretaccesskey and acceskeyid  for kops  user: 
+
+-------------------------------------
+
+----------------------------------------
+7) (optional)  have a second koops user for someone else:
+
+---------> start
+aws iam create-user --user-name kops2 \
+&& aws iam add-user-to-group --user-name kops2 --group-name kops \
+&& aws iam create-access-key --user-name kops2
+-----------> end
+--------------------------------------
+
+***************************************************
+***************************************
+USERS ::: For users who got    koops keys from administrator  continue  with (Step 8 - 
+***************************************
+***************************************************
+
+-------------------------------------
+8) run aws configure again to make koops  user the default user on your cli
+
+https://docs.aws.amazon.com/de_de/cli/latest/userguide/cli-chap-configure.html
+
+aws configure
+
+AWS Access Key ID [None]: N7--EXAMPLE   (KNOW USE KEYS for kops  user !!)
+AWS Secret Access Key [None]: fiCY--EXAMPLEKEY
+Default region name [None]: us-west-2
+Default output format [None]: json
+
+Hint: us-west-2  is USA West (Oregon) // for later finding services in webconsole
+
+Optional: Check your current user (should be koops  user): 
+aws iam get-user
+aws iam list-users      # you should see a list of all your IAM users here
+-------------------------------------
+
+----------------------------------------------
+9) Copy past to CLI
+https://github.com/kubernetes/kops/blob/master/docs/aws.md
+
+# Because "aws configure" doesn't export these vars for kops to use, we export them now
+
+export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
+export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
+
+-----------------------------------------------
+
+-----------------------------------------
+10) Create Bucket for cluster state storage
+
+This example uses bucket in us-east-1  (which is different from us-west-2 where the cluster is setup to run)
+https://github.com/kubernetes/kops/blob/master/docs/aws.md
+
+This post uses the bucket name kubernetes-aws-io. Bucket names must be unique; you have to use a different name. Create an S3 bucket:
+
+Create bucket:
+aws s3api create-bucket \
+    --bucket kubernetes-aws-198981 \
+    --region us-east-1
+
+
+Turn versioning on:
+aws s3api put-bucket-versioning --bucket kubernetes-aws-198981 --versioning-configuration Status=Enabled
+
+Optional (Bucket encryption)
+aws s3api put-bucket-encryption --bucket kubernetes-aws-198981 --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+------------------------------------------
+
+
+-------------------------------------
+11) create an   ssh key  in the us-west-2  region  (example: in the web console)
+  example ssh key name:    kubernetes
+
+
+--------------
+kops create secret --name cluster.mahjongfree.de sshpublickey admin -i ~/.ssh/id_rsa.pub
+--------------
+-------------------------------------
+
+------------------------------------------
+12)
+create a hostetd zone for your domain in AWS Route 53
+Namecheap.com Domain example:
+http://techgenix.com/namecheap-aws-ec2-linux/
+
+
+Check domain NS records (if they are connected):
+dig ns subdomain.example.com
+
+Should return something similar to:
+
+;; ANSWER SECTION:
+subdomain.example.com.        172800  IN  NS  ns-1.awsdns-1.net.
+subdomain.example.com.        172800  IN  NS  ns-2.awsdns-2.org.
+subdomain.example.com.        172800  IN  NS  ns-3.awsdns-3.com.
+subdomain.example.com.        172800  IN  NS  ns-4.awsdns-4.co.uk.
+
+------------------------------------------
+
+
+
+-------------------------------------------------------
+13)
+https://github.com/kubernetes/kops/blob/master/docs/aws.md
+
+We're ready to start creating our first cluster! Let's first set up a few environment variables to make this process easier.
+
+myfirstcluster is an example name which can be used for versioning 
+export NAME=myfirstcluster.example.com
+
+export KOPS_STATE_STORE=s3://kubernetes-aws-198981
+
+
+-------------------------------------------------------
+
+-------------->>>>>>>>>>>>>>>>>>>  REMOVE
+!!!!!!!!!!!!!!!!
+export NAME=cluster.mahjongfree.de
+export KOPS_STATE_STORE=s3://kubernetes-aws-198981
+!!!!!!!!!!!!!!!!!!
+----------------->>>>>>>>>>>>>>>  REMOVE
+
+
+------------------------------------------------
+14)  Create cluster configuration: 
+Both have similar (check out both)  instructions on how to deploy an Koops Kubernetes Cluster: 
+https://aws.amazon.com/de/blogs/compute/kubernetes-clusters-aws-kops/
+https://github.com/kubernetes/kops/blob/master/docs/aws.md
+
+check availability zones:
+aws ec2 describe-availability-zones --region us-west-2
+
+
+See more options for cluster configuration:
+https://github.com/kubernetes/kops/blob/master/docs/high_availability.md#advanced-example
+
+(will create 2 t2.micro  on demand instances which will bill around 1-3 Dollar a day     (hourly billing) )
+
+------------------------------->> start  
+kops create cluster \
+    --node-count 1 \
+    --master-count 1 \
+    --zones us-west-2a \
+    --master-zones us-west-2a \
+    --dns-zone mahjongfree.de \
+    --node-size t2.micro \
+    --master-size t2.micro \
+    ${NAME}
+------------------------------>>> end
+
+
+
+
+
+------------------------------  MORE OPTIONS FOR LATER USE
+    --node-security-groups sg-12345678 \
+    --master-security-groups sg-12345678,i-abcd1234 \
+    --topology private \
+    --networking weave \
+    --cloud-labels "Team=Dev,Owner=John Doe" \
+    --image 293135079892/k8s-1.4-debian-jessie-amd64-hvm-ebs-2016-11-16 \
+----------------------------------------------
+

@@ -1,5 +1,7 @@
 # react-todo-list
 
+THIS PROJECT IS ARCHIVED.
+
 ## Deployment
 
 ```shell
